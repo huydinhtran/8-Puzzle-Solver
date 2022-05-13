@@ -9,10 +9,11 @@ CS205 AI Project 1
 #include <iostream>
 #include <algorithm>
 #include <queue>
+#include <vector>
 #include <list>
 #include <string>
 #include <cstdlib>
-#include "8puzzle.h"
+
 //Move blank is not working, queue doesn't have changing matrix
 using namespace std;
 
@@ -107,40 +108,51 @@ void copyBoard(int (&target)[3][3], int (&matrix)[3][3]) {
     }
 }
 
-void assignChild1(Node* &curr, int (&matrix)[3][3], int blankX, int blankY) {
+bool isDup(vector<Node*>vec, Node* input) {
+    for (int i = 0; i < vec.size(); i++) {
+        if (vec[i]->matrix == input->matrix) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
     Node* temp = new Node;
+
     temp->moveCost = curr->moveCost + 1;
-    copyBoard(temp->matrix, matrix);
+    copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
+
     curr->child1 = temp;
 }
 
-void assignChild2(Node* &curr, int(&matrix)[3][3], int blankX, int blankY) {
+void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
     Node* temp = new Node;
     temp->moveCost = curr->moveCost + 1;
-    copyBoard(temp->matrix, matrix);
+    copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
     curr->child2 = temp;
 }
 
-void assignChild3(Node* &curr, int(&matrix)[3][3], int blankX, int blankY) {
+void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
     Node* temp = new Node;
     temp->moveCost = curr->moveCost + 1;
-    copyBoard(temp->matrix, matrix);
+    copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
     curr->child3 = temp;
 }
 
-void assignChild4(Node* &curr, int(&matrix)[3][3], int blankX, int blankY) {
+void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
     Node* temp = new Node;
     temp->moveCost = curr->moveCost + 1;
-    copyBoard(temp->matrix, matrix);
+    copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
@@ -157,14 +169,12 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[0][0], temp[0][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 0, 1);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][0], temp[1][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 1, 0);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             break;
@@ -173,21 +183,18 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[0][1], temp[0][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 0, 0);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][1], temp[0][2]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 0, 2);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][1], temp[1][1]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 1);
-                //printBoard(temp);
+                assignChild3(node, temp, 1, 1);
                 q.push(node->child3);
             }
             break;
@@ -196,14 +203,12 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[0][2], temp[0][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 0, 1);
-                printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][2], temp[1][2]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 1, 2);
-                printBoard(temp);
                 q.push(node->child2);
             }
             break;
@@ -215,21 +220,18 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[1][0], temp[0][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 0, 0);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][0], temp[1][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 1, 1);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][0], temp[2][0]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 2, 0);
-                //printBoard(temp);
+                assignChild3(node, temp, 2, 0);
                 q.push(node->child3);
             }
             break;
@@ -238,28 +240,24 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[1][1], temp[1][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 1, 0);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[0][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 0, 1);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[1][2]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 2);
-                //printBoard(temp);
+                assignChild3(node, temp, 1, 2);
                 q.push(node->child3);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[2][1]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 2, 1);
-                //printBoard(temp);
+                assignChild4(node, temp, 2, 1);
                 q.push(node->child4);
             }
             break;
@@ -268,21 +266,18 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[1][2], temp[1][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 1, 1);
-                printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][2], temp[0][2]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 0, 2);
-                printBoard(temp);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][2], temp[2][2]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 2, 2);
-                printBoard(temp);
+                assignChild3(node, temp, 2, 2);
                 q.push(node->child3);
             }
             break;
@@ -294,14 +289,12 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[2][0], temp[1][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 1, 0);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][0], temp[2][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 2, 1);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             break;
@@ -310,21 +303,18 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[2][1], temp[2][0]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 2, 0);
-                //printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][1], temp[1][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 1, 1);
-                //printBoard(temp);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][1], temp[2][2]);
             if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 2, 2);
-                //printBoard(temp);
+                assignChild3(node, temp, 2, 2);
                 q.push(node->child3);
             }
             break;
@@ -333,14 +323,12 @@ void moveBlank(Node* &node, queue <Node*> &q) {
             swap(temp[2][2], temp[2][1]);
             if (node->parent->matrix != node->matrix) {
                 assignChild1(node, temp, 2, 1);
-                printBoard(temp);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][2], temp[1][2]);
             if (node->parent->matrix != node->matrix) {
                 assignChild2(node, temp, 1, 2);
-                printBoard(temp);
                 q.push(node->child2);
             }
             break;
@@ -348,34 +336,51 @@ void moveBlank(Node* &node, queue <Node*> &q) {
     }
 }
 
-void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for Uniform Cost Search
-
+Node* chooseNode() {
+    return NULL;
 }
 
-void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Misplaced Tile Heuristic
+void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for Uniform Cost Search
     queue <Node*> q;
-    int check[3][3];
     Node* temp = new Node;
     bool isSolved = false;
-
+    vector<Node*> duplicate;
     q.push(root);
-    while (isSolved == false) {
+    while (q.size() > 0) {
         if (q.empty() == true) {
             cout << "empty";
         }
+
         for (int i = 0; i < q.size(); i++) {
             temp = q.front();
-            //printBoard(temp->matrix);
+
             q.pop();
-            copyBoard(check, temp->matrix);
-            //cout << q.size() << endl;
-            if (checkGoal(check, goal) == true) {
+            printBoard(temp->matrix);
+            cout << endl;
+            if (checkGoal(temp->matrix, goal) == true) {
                 isSolved = true;
-                cout << "success";
+                cout << "Solution found!" << endl;
+                cout << "Solution depth: " << temp->moveCost << endl;
+                cout << "Number of nodes expanded: " << nodeExpand << endl;
+                cout << "Max queue size: " << queueSize << endl;
+                return;
             }
+
+            if (isDup(duplicate, temp) == false) {
+                moveBlank(temp, q);
+                if (queueSize < q.size()) {
+                    queueSize = q.size();
+                }
+                nodeExpand += q.size();
+            }
+            duplicate.insert(duplicate.begin(), temp);
+
         }
-        moveBlank(root, q);
     }
+}
+
+void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Misplaced Tile Heuristic
+
 }
 
 void AManhattan(int input[3][3], int goal[3][3], Node* root, int depth, int nodeExpand, int queueSize) { //search algorithm for A star Manhattan Distance Heuristic
@@ -385,9 +390,9 @@ void AManhattan(int input[3][3], int goal[3][3], Node* root, int depth, int node
 int main()
 {
     int initChoose;
-    int blankX=0, blankY=0;
+    int blankX=1, blankY=1;
     int depth, nodeExpand, queueSize;
-    int matrix[3][3] = { {1,2,3}, {5,0,6}, {4,7,8} };
+    int matrix[3][3] = { {1,2,3},{5,0,6},{4,7,8} };
     int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     
     cout << "Welcome to Huy Dinh Tran (862325308, htran197) 8-Puzzle Solver.\nType '1' to to use a default puzzle, or '2' to create your own.\n";
@@ -432,10 +437,6 @@ int main()
     }
 
     //initializing root node
-    node->child1 = NULL;
-    node->child2 = NULL;
-    node->child3 = NULL;
-    node->child4 = NULL;
     node->parent = NULL;
     node->heuristic = 0;
     node->moveCost = 0;
