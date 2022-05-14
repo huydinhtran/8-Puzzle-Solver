@@ -14,7 +14,7 @@ CS205 AI Project 1
 #include <string>
 #include <cstdlib>
 
-//Move blank is not working, queue doesn't have changing matrix
+//Look into priority queue
 using namespace std;
 
 struct Node {
@@ -25,8 +25,30 @@ struct Node {
     Node* child4;
     Node* parent;
     int blankX, blankY;
-    int heuristic;
+    int hMan;
+    int hTile;
     int moveCost;
+};
+
+struct compareHTile {
+    bool operator()(Node* &a,  Node* &b) 
+    {
+        return a->hTile > b->hTile;
+    }
+};
+
+struct compareUni {
+    bool operator()(Node*& a, Node*& b)
+    {
+        return a->moveCost > b->moveCost;
+    }
+};
+
+struct compareHMan {
+    bool operator()(const Node* a, const Node* b) const
+    {
+        return a->hMan > b->hMan;
+    }
 };
 
 bool checkGoal(int input[3][3], int goal[3][3]) { //return true if input matrix the same as goal matrix, else, return false
@@ -117,49 +139,63 @@ bool isDup(vector<Node*>vec, Node* input) {
     return false;
 }
 
-void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
+void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int &nodeExpand) {
     Node* temp = new Node;
-
+    int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
     copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
-
+    temp->hMan = hManhattan(childMatrix,goal) + temp->moveCost;
+    temp->hTile = hMisTile(childMatrix, goal) + temp->moveCost;
+    nodeExpand++;
     curr->child1 = temp;
 }
 
-void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
+void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
     Node* temp = new Node;
+    int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
     copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
+    temp->hMan = hManhattan(childMatrix, goal) + temp->moveCost;
+    temp->hTile = hMisTile(childMatrix, goal) + temp->moveCost;
+    nodeExpand++;
     curr->child2 = temp;
 }
 
-void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
+void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
     Node* temp = new Node;
+    int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
     copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
+    temp->hMan = hManhattan(childMatrix, goal) + temp->moveCost;
+    temp->hTile = hMisTile(childMatrix, goal) + temp->moveCost;
+    nodeExpand++;
     curr->child3 = temp;
 }
 
-void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY) {
+void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
     Node* temp = new Node;
+    int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
     copyBoard(temp->matrix, childMatrix);
     temp->parent = curr;
     temp->blankX = blankX;
     temp->blankY = blankY;
+    temp->hMan = hManhattan(childMatrix, goal) + temp->moveCost;
+    temp->hTile = hMisTile(childMatrix, goal) + temp->moveCost;
+    nodeExpand++;
     curr->child4 = temp;
 }
 
-void moveBlank(Node* &node, queue <Node*> &q) {
+void moveBlankHTile(Node* &node, priority_queue <Node*, vector<Node*>, compareHTile> &q, int &nodeExpand, int &queueSize) {
     int temp[3][3];
     switch (node->blankX) {
     case 0:
@@ -167,48 +203,48 @@ void moveBlank(Node* &node, queue <Node*> &q) {
         case 0:
             copyBoard(temp, node->matrix);
             swap(temp[0][0], temp[0][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 0, 1);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][0], temp[1][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 0);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 0, nodeExpand);
                 q.push(node->child2);
             }
             break;
         case 1:
             copyBoard(temp, node->matrix);
             swap(temp[0][1], temp[0][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 0, 0);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][1], temp[0][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 0, 2);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][1], temp[1][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild3(node, temp, 1, 1);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 1, nodeExpand);
                 q.push(node->child3);
             }
             break;
         case 2:
             copyBoard(temp, node->matrix);
             swap(temp[0][2], temp[0][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 0, 1);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[0][2], temp[1][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 2);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
                 q.push(node->child2);
             }
             break;
@@ -218,66 +254,66 @@ void moveBlank(Node* &node, queue <Node*> &q) {
         case 0:
             copyBoard(temp, node->matrix);
             swap(temp[1][0], temp[0][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 0, 0);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][0], temp[1][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 1);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][0], temp[2][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild3(node, temp, 2, 0);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 0, nodeExpand);
                 q.push(node->child3);
             }
             break;
         case 1:
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[1][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 1, 0);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[0][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 0, 1);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 1, nodeExpand);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[1][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild3(node, temp, 1, 2);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 2, nodeExpand);
                 q.push(node->child3);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][1], temp[2][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild4(node, temp, 2, 1);
+            if (node->parent->matrix != temp) {
+                assignChild4(node, temp, 2, 1, nodeExpand);
                 q.push(node->child4);
             }
             break;
         case 2:
             copyBoard(temp, node->matrix);
             swap(temp[1][2], temp[1][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 1, 1);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 1, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][2], temp[0][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 0, 2);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[1][2], temp[2][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild3(node, temp, 2, 2);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
                 q.push(node->child3);
             }
             break;
@@ -287,48 +323,48 @@ void moveBlank(Node* &node, queue <Node*> &q) {
         case 0:
             copyBoard(temp, node->matrix);
             swap(temp[2][0], temp[1][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 1, 0);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][0], temp[2][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 2, 1);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 2, 1, nodeExpand);
                 q.push(node->child2);
             }
             break;
         case 1:
             copyBoard(temp, node->matrix);
             swap(temp[2][1], temp[2][0]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 2, 0);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 0, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][1], temp[1][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 1);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
                 q.push(node->child2);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][1], temp[2][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild3(node, temp, 2, 2);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
                 q.push(node->child3);
             }
             break;
         case 2:
             copyBoard(temp, node->matrix);
             swap(temp[2][2], temp[2][1]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild1(node, temp, 2, 1);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 1, nodeExpand);
                 q.push(node->child1);
             }
             copyBoard(temp, node->matrix);
             swap(temp[2][2], temp[1][2]);
-            if (node->parent->matrix != node->matrix) {
-                assignChild2(node, temp, 1, 2);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
                 q.push(node->child2);
             }
             break;
@@ -336,55 +372,464 @@ void moveBlank(Node* &node, queue <Node*> &q) {
     }
 }
 
-Node* chooseNode() {
-    return NULL;
+void moveBlankHMan(Node*& node, priority_queue <Node*, vector<Node*>, compareHMan> &q, int& nodeExpand, int& queueSize) {
+    int temp[3][3];
+    switch (node->blankX) {
+    case 0:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][0], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][0], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 0, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[0][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[0][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 1, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][2], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][2], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        }
+    case 1:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[0][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[2][0]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 0, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild4(node, temp, 2, 1, nodeExpand);
+                q.push(node->child4);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[0][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[2][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        }
+    case 2:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][0], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][0], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 2, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[2][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[2][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][2], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][2], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        }
+    }
+}
+
+void moveBlankUni(Node*& node, priority_queue <Node*, vector<Node*>, compareUni> &q, int& nodeExpand, int& queueSize) {
+    int temp[3][3];
+    switch (node->blankX) {
+    case 0:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][0], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][0], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 0, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[0][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[0][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][1], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 1, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[0][2], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[0][2], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        }
+    case 1:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[0][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 0, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][0], temp[2][0]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 0, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[0][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 1, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][1], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild4(node, temp, 2, 1, nodeExpand);
+                q.push(node->child4);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[0][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 0, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[1][2], temp[2][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        }
+    case 2:
+        switch (node->blankY) {
+        case 0:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][0], temp[1][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 1, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][0], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 2, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        case 1:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[2][0]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 0, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[1][1]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 1, nodeExpand);
+                q.push(node->child2);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][1], temp[2][2]);
+            if (node->parent->matrix != temp) {
+                assignChild3(node, temp, 2, 2, nodeExpand);
+                q.push(node->child3);
+            }
+            break;
+        case 2:
+            copyBoard(temp, node->matrix);
+            swap(temp[2][2], temp[2][1]);
+            if (node->parent->matrix != temp) {
+                assignChild1(node, temp, 2, 1, nodeExpand);
+                q.push(node->child1);
+            }
+            copyBoard(temp, node->matrix);
+            swap(temp[2][2], temp[1][2]);
+            if (node->parent->matrix != temp) {
+                assignChild2(node, temp, 1, 2, nodeExpand);
+                q.push(node->child2);
+            }
+            break;
+        }
+    }
 }
 
 void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for Uniform Cost Search
-    queue <Node*> q;
+    priority_queue <Node*, vector<Node*>, compareUni> q;
+    priority_queue <Node*, vector<Node*>, compareUni> q2;
     Node* temp = new Node;
-    bool isSolved = false;
     vector<Node*> duplicate;
     q.push(root);
     while (q.size() > 0) {
         if (q.empty() == true) {
-            cout << "empty";
+            cout << "Failure";
+            return;
         }
-
-        for (int i = 0; i < q.size(); i++) {
-            temp = q.front();
-
+        q2 = q;
+        /*if (queueSize < q.size()) {
+            queueSize = q.size();
+        }*/
+        while (q.size() > 0) {
+            if (queueSize < q.size()) {
+                queueSize = q.size();
+            }
+            temp = q.top();
             q.pop();
-            printBoard(temp->matrix);
-            cout << endl;
             if (checkGoal(temp->matrix, goal) == true) {
-                isSolved = true;
                 cout << "Solution found!" << endl;
                 cout << "Solution depth: " << temp->moveCost << endl;
                 cout << "Number of nodes expanded: " << nodeExpand << endl;
                 cout << "Max queue size: " << queueSize << endl;
                 return;
             }
-
+            /*if (isDup(duplicate, temp) == false) {
+                moveBlankUni(temp, q, nodeExpand, queueSize);
+                duplicate.insert(duplicate.begin(), temp);
+            }*/
+        }
+        while (q2.size() > 0) {
+            temp = q2.top();
+            q2.pop();
             if (isDup(duplicate, temp) == false) {
-                moveBlank(temp, q);
-                if (queueSize < q.size()) {
-                    queueSize = q.size();
-                }
-                nodeExpand += q.size();
+                moveBlankUni(temp, q, nodeExpand, queueSize);
+                duplicate.insert(duplicate.begin(), temp);
             }
-            duplicate.insert(duplicate.begin(), temp);
-
         }
     }
 }
 
 void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Misplaced Tile Heuristic
-
+    priority_queue <Node*, vector<Node*>, compareHTile> q;
+    priority_queue <Node*, vector<Node*>, compareHTile> q2;
+    Node* temp = new Node;
+    vector<Node*> duplicate;
+    q.push(root);
+    while (q.size() > 0) {
+        if (q.empty() == true) {
+            cout << "Failure";
+            return;
+        }
+        q2 = q;
+        if (queueSize < q.size()) {
+            queueSize = q.size();
+        }
+        temp = q.top();
+        q.pop();
+        if (checkGoal(temp->matrix, goal) == true) {
+            cout << "Solution found!" << endl;
+            cout << "Solution depth: " << temp->moveCost << endl;
+            cout << "Number of nodes expanded: " << nodeExpand << endl;
+            cout << "Max queue size: " << queueSize << endl;
+            return;
+        }
+        else {
+            moveBlankHTile(temp, q, nodeExpand, queueSize);
+            duplicate.insert(duplicate.begin(), temp);
+        }
+    }
 }
 
-void AManhattan(int input[3][3], int goal[3][3], Node* root, int depth, int nodeExpand, int queueSize) { //search algorithm for A star Manhattan Distance Heuristic
-
+void AManhattan(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Manhattan Distance Heuristic
+    priority_queue <Node*, vector<Node*>, compareHMan> q;
+    priority_queue <Node*, vector<Node*>, compareHMan> q2;
+    Node* temp = new Node;
+    vector<Node*> duplicate;
+    q.push(root);
+    while (q.size() > 0) {
+        if (q.empty() == true) {
+            cout << "Failure";
+            return;
+        }
+        q2 = q;
+        if (queueSize < q.size()) {
+            queueSize = q.size();
+        }
+        temp = q.top();
+        q.pop();
+        if (checkGoal(temp->matrix, goal) == true) {
+            cout << "Solution found!" << endl;
+            cout << "Solution depth: " << temp->moveCost << endl;
+            cout << "Number of nodes expanded: " << nodeExpand << endl;
+            cout << "Max queue size: " << queueSize << endl;
+            return;
+        }
+        else {
+            moveBlankHMan(temp, q, nodeExpand, queueSize);
+            duplicate.insert(duplicate.begin(), temp);
+        }
+    }
 }
 
 int main()
@@ -438,7 +883,8 @@ int main()
 
     //initializing root node
     node->parent = NULL;
-    node->heuristic = 0;
+    node->hMan = 0;
+    node->hTile = 0;
     node->moveCost = 0;
     node->blankX = blankX;
     node->blankY = blankY;
