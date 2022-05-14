@@ -3,7 +3,9 @@ Huy Dinh Tran
 ID: 862325308
 Email: htran197@ucr.edu
 
-CS205 AI Project 1
+CS205 AI Spring 2022
+Project 1 
+Dr. Eamonn Keogh
 */
 #include <stdio.h> 
 #include <iostream>
@@ -13,11 +15,11 @@ CS205 AI Project 1
 #include <list>
 #include <string>
 #include <cstdlib>
+#include <chrono>  
 
-//Look into priority queue
 using namespace std;
 
-struct Node {
+struct Node { //struct of a Node which has pointers to childs and parent with attribute of heuristic, movement cost and location of the blank within matrix. 
     int matrix[3][3];
     Node* child1;
     Node* child2;
@@ -30,21 +32,21 @@ struct Node {
     int moveCost;
 };
 
-struct compareHTile {
+struct compareHTile { //used for priority_queue, place lowest MisTile heuristic at the top
     bool operator()(Node* &a,  Node* &b) 
     {
         return a->hTile > b->hTile;
     }
 };
 
-struct compareUni {
+struct compareUni { //used for priority_queue, place lowest movement cost at the top
     bool operator()(Node*& a, Node*& b)
     {
         return a->moveCost > b->moveCost;
     }
 };
 
-struct compareHMan {
+struct compareHMan { //used for priority_queue, place lowest Manhattan heuristic at the top
     bool operator()(const Node* a, const Node* b) const
     {
         return a->hMan > b->hMan;
@@ -122,7 +124,7 @@ void printBoard(int input[3][3]) { //print the current board
     }
 }
 
-void copyBoard(int (&target)[3][3], int (&matrix)[3][3]) {
+void copyBoard(int (&target)[3][3], int (&matrix)[3][3]) { //copying matrix from input to target
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             target[i][j] = matrix[i][j];
@@ -130,7 +132,7 @@ void copyBoard(int (&target)[3][3], int (&matrix)[3][3]) {
     }
 }
 
-bool isDup(vector<Node*>vec, Node* input) {
+bool isDup(vector<Node*>vec, Node* input) { //searching through vector to see if there is any duplication
     for (int i = 0; i < vec.size(); i++) {
         if (vec[i]->matrix == input->matrix) {
             return true;
@@ -139,7 +141,7 @@ bool isDup(vector<Node*>vec, Node* input) {
     return false;
 }
 
-void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int &nodeExpand) {
+void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int &nodeExpand) { //making child1
     Node* temp = new Node;
     int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
@@ -153,7 +155,7 @@ void assignChild1(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY,
     curr->child1 = temp;
 }
 
-void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
+void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) { //making child2
     Node* temp = new Node;
     int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
@@ -167,7 +169,7 @@ void assignChild2(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY,
     curr->child2 = temp;
 }
 
-void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
+void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) { //making child3
     Node* temp = new Node;
     int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
@@ -181,7 +183,7 @@ void assignChild3(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY,
     curr->child3 = temp;
 }
 
-void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) {
+void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY, int& nodeExpand) { //making child4
     Node* temp = new Node;
     int goal[3][3] = { {1,2,3},{4,5,6},{7,8,0} };
     temp->moveCost = curr->moveCost + 1;
@@ -195,7 +197,7 @@ void assignChild4(Node* &curr, int (&childMatrix)[3][3], int blankX, int blankY,
     curr->child4 = temp;
 }
 
-void moveBlankHTile(Node* &node, priority_queue <Node*, vector<Node*>, compareHTile> &q, int &nodeExpand, int &queueSize) {
+void moveBlankHTile(Node* &node, priority_queue <Node*, vector<Node*>, compareHTile> &q, int &nodeExpand, int &queueSize)  {//moving empty tile, creating childs and also pushing into queue for A*MisTile
     int temp[3][3];
     switch (node->blankX) {
     case 0:
@@ -372,7 +374,7 @@ void moveBlankHTile(Node* &node, priority_queue <Node*, vector<Node*>, compareHT
     }
 }
 
-void moveBlankHMan(Node*& node, priority_queue <Node*, vector<Node*>, compareHMan> &q, int& nodeExpand, int& queueSize) {
+void moveBlankHMan(Node*& node, priority_queue <Node*, vector<Node*>, compareHMan> &q, int& nodeExpand, int& queueSize) { //moving empty tile, creating childs and also pushing into queue for A*Manhattan
     int temp[3][3];
     switch (node->blankX) {
     case 0:
@@ -549,7 +551,7 @@ void moveBlankHMan(Node*& node, priority_queue <Node*, vector<Node*>, compareHMa
     }
 }
 
-void moveBlankUni(Node*& node, priority_queue <Node*, vector<Node*>, compareUni> &q, int& nodeExpand, int& queueSize) {
+void moveBlankUni(Node*& node, priority_queue <Node*, vector<Node*>, compareUni> &q, int& nodeExpand, int& queueSize) { //moving empty tile, creating childs and also pushing into queue for UniCostSearch
     int temp[3][3];
     switch (node->blankX) {
     case 0:
@@ -738,15 +740,16 @@ void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int 
             return;
         }
         q2 = q;
-        /*if (queueSize < q.size()) {
-            queueSize = q.size();
-        }*/
         while (q.size() > 0) {
             if (queueSize < q.size()) {
                 queueSize = q.size();
             }
             temp = q.top();
             q.pop();
+
+            cout << "g(n) = " << temp->moveCost << " and h(n) = 0" << endl;
+            printBoard(temp->matrix);
+
             if (checkGoal(temp->matrix, goal) == true) {
                 cout << "Solution found!" << endl;
                 cout << "Solution depth: " << temp->moveCost << endl;
@@ -754,10 +757,6 @@ void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int 
                 cout << "Max queue size: " << queueSize << endl;
                 return;
             }
-            /*if (isDup(duplicate, temp) == false) {
-                moveBlankUni(temp, q, nodeExpand, queueSize);
-                duplicate.insert(duplicate.begin(), temp);
-            }*/
         }
         while (q2.size() > 0) {
             temp = q2.top();
@@ -772,7 +771,6 @@ void UniCostSearch(int input[3][3], int goal[3][3], Node* root, int &depth, int 
 
 void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Misplaced Tile Heuristic
     priority_queue <Node*, vector<Node*>, compareHTile> q;
-    priority_queue <Node*, vector<Node*>, compareHTile> q2;
     Node* temp = new Node;
     vector<Node*> duplicate;
     q.push(root);
@@ -781,12 +779,16 @@ void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &node
             cout << "Failure";
             return;
         }
-        q2 = q;
         if (queueSize < q.size()) {
             queueSize = q.size();
         }
+
         temp = q.top();
         q.pop();
+
+        cout << "g(n) = " << temp->moveCost << " and h(n) = " << temp->hTile - temp->moveCost << endl;
+        printBoard(temp->matrix);
+
         if (checkGoal(temp->matrix, goal) == true) {
             cout << "Solution found!" << endl;
             cout << "Solution depth: " << temp->moveCost << endl;
@@ -803,7 +805,6 @@ void AMisTile(int input[3][3], int goal[3][3], Node* root, int &depth, int &node
 
 void AManhattan(int input[3][3], int goal[3][3], Node* root, int &depth, int &nodeExpand, int &queueSize) { //search algorithm for A star Manhattan Distance Heuristic
     priority_queue <Node*, vector<Node*>, compareHMan> q;
-    priority_queue <Node*, vector<Node*>, compareHMan> q2;
     Node* temp = new Node;
     vector<Node*> duplicate;
     q.push(root);
@@ -812,12 +813,15 @@ void AManhattan(int input[3][3], int goal[3][3], Node* root, int &depth, int &no
             cout << "Failure";
             return;
         }
-        q2 = q;
         if (queueSize < q.size()) {
             queueSize = q.size();
         }
         temp = q.top();
         q.pop();
+
+        cout << "g(n) = " << temp->moveCost << " and h(n) = " << temp->hMan - temp->moveCost << endl;
+        printBoard(temp->matrix);
+
         if (checkGoal(temp->matrix, goal) == true) {
             cout << "Solution found!" << endl;
             cout << "Solution depth: " << temp->moveCost << endl;
@@ -832,7 +836,7 @@ void AManhattan(int input[3][3], int goal[3][3], Node* root, int &depth, int &no
     }
 }
 
-int main()
+int main() //Choosing and user inputing current state into searching algorithm
 {
     int initChoose;
     int blankX=1, blankY=1;
@@ -896,6 +900,8 @@ int main()
     cout << "Select algorithm: \n(1) for Uniform Cost Search \n(2) for the Misplaced Tile Heuristic \n(3) the Manhattan Distance Heuristic" << endl;
     cin >> algoChoose;
 
+    auto start = chrono::steady_clock::now();
+    
     switch (algoChoose) {
     case 1:
         UniCostSearch(matrix, goal, node, depth, nodeExpand, queueSize);
@@ -907,6 +913,11 @@ int main()
         AManhattan(matrix, goal, node, depth, nodeExpand, queueSize);
         break;
     }
+
+    auto end = chrono::steady_clock::now();
+    auto diff = end - start;
+
+    cout << "Execution time (seconds): " << chrono::duration <double, milli>(diff).count() << " ms" << endl;
 
     return 0;
 }
